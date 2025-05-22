@@ -22,7 +22,8 @@
     "tag-generator-api": "file:"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "vite": "^6.3.5"
   },
   "engines": {
     "node": ">=14.0.0"
