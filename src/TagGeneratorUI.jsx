@@ -16,7 +16,7 @@ const TagGeneratorUI = () => {
   const generateFieldId = () => {
     return `field-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   };
-
+  
   const handleGenerateTag = async () => {
     if (!fieldLabel.trim()) {
       setError('Please enter a field label');
@@ -190,25 +190,17 @@ const TagGeneratorUI = () => {
   };
 
   return (
-    // ... JSX remains unchanged ...
-  );
-};
-
-export default TagGeneratorUI;
-
-      
-      <div className="mt-8 bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4">About Tag Generator</h2>
-        <p className="mb-2">This tool helps you generate consistent, meaningful tags for agricultural form fields.</p>
-        <p className="mb-2">The generated tags follow a standardized format and take into account agricultural domain knowledge.</p>
-        <p>Common tag patterns include:</p>
-        <ul className="list-disc pl-5 mt-2">
-          <li>soil_ph - for soil pH fields</li>
-          <li>crop_harvested - for harvested crop fields</li>
-          <li>chicken_vaccination - for chicken vaccination fields</li>
-          <li>yield_acre - for yield per acre fields</li>
-        </ul>
-      </div>
+    <div className="mt-8 bg-white p-6 rounded-lg shadow">
+      <h2 className="text-xl font-semibold mb-4">About Tag Generator</h2>
+      <p className="mb-2">This tool helps you generate consistent, meaningful tags for agricultural form fields.</p>
+      <p className="mb-2">The generated tags follow a standardized format and take into account agricultural domain knowledge.</p>
+      <p>Common tag patterns include:</p>
+      <ul className="list-disc pl-5 mt-2">
+        <li>soil_ph - for soil pH fields</li>
+        <li>crop_harvested - for harvested crop fields</li>
+        <li>chicken_vaccination - for chicken vaccination fields</li>
+        <li>yield_acre - for yield per acre fields</li>
+      </ul>
     </div>
   );
 };
