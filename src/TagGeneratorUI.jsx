@@ -205,5 +205,5 @@ const TagGeneratorUI = () => {
   );
 };
 
-export { generateTag };
+// export { generateTag };
 export default TagGeneratorUI;
