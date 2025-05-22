@@ -125,7 +125,62 @@ const TagGeneratorUI = () => {
       return text.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
     };
 
-    const stopWords = new Set(['a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'over', 'after']);
+    const stopWords = new Set(['a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'over', 'after',  // Articles
+      "a", "an", "the",
+      
+      // Pronouns
+      "i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your", 
+      "yours", "yourself", "yourselves", "he", "him", "his", "himself", "she", 
+      "her", "hers", "herself", "it", "its", "itself", "they", "them", "their", 
+      "theirs", "themselves", "what", "which", "who", "whom", "this", "that", 
+      "these", "those",
+      
+      // Prepositions
+      "at", "by", "for", "from", "in", "into", "of", "off", "on", "onto", "out", 
+      "over", "to", "under", "up", "with", "about", "above", "across", "after", 
+      "against", "along", "amid", "among", "around", "as", "before", "behind", 
+      "below", "beneath", "beside", "between", "beyond", "but", "despite", "down", 
+      "during", "except", "for", "from", "inside", "like", "near", "opposite", 
+      "outside", "past", "per", "plus", "regarding", "round", "since", "than", 
+      "through", "throughout", "till", "toward", "towards", "until", "unto", "upon", 
+      "versus", "via", "within", "without",
+      
+      // Conjunctions
+      "and", "or", "but", "if", "nor", "so", "yet", "although", "because", "since", 
+      "unless", "when", "where", "while",
+      
+      // Verbs
+      "am", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", 
+      "having", "do", "does", "did", "doing", "can", "could", "should", "would", 
+      "shall", "will", "may", "might", "must", "ought",
+      
+      // Adverbs
+      "just", "very", "too", "also", "even", "quite", "simply", "else", "again", 
+      "further", "then", "once", "here", "there", "why", "how", "all", "any", 
+      "both", "each", "few", "more", "most", "other", "some", "such", "no", "nor", 
+      "not", "only", "own", "same", "so", "than",
+      
+      // Question words
+      "what", "which", "who", "whom", "whose", "why", "how", "where", "when",
+      
+      // Common modifiers
+      "many", "much", "several", "few", "little", "various", "certain", "some", "any",
+      
+      // Quantities/Numbers
+      "one", "two", "three", "four", "five", "ten", "hundred", "thousand", "million",
+      
+      // Time-related
+      "now", "later", "soon", "never", "always", "sometimes", "often", "rarely",
+      "daily", "weekly", "monthly", "yearly", "today", "tomorrow", "yesterday",
+      
+      // Others
+      "etc", "eg", "ex", "ie", "vs", "hi", "hello", "please", "thanks", "thank", 
+      "following", "given", "taken", "made", "done", "used",
+      
+      // Domain-specific stop words
+      "amount", "level", "total", "number", "quantity", "value", "rate", "many",
+      "enter", "select", "choose", "provide", "specify", "indicate", "list",
+      "approximate", "estimated", "average"]);
 
     const domainWords = {
       'soil': 10, 'crop': 10, 'yield': 10, 'moisture': 9, 'temperature': 9,
