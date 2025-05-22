@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import tagGenerator from '../api/tag-generator';
 
 const TagGeneratorUI = () => {
   const [fieldLabel, setFieldLabel] = useState('');
@@ -34,21 +33,61 @@ const TagGeneratorUI = () => {
       const currentFieldId = fieldId || generateFieldId();
       setFieldId(currentFieldId);
 
-      // Make API request to generate tag
-      const response = await fetch('/api/tag-generator', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          field_label: fieldLabel,
-          form_id: formId,
-          field_id: currentFieldId
-        }),
-      });
+      // Try different API endpoints
+      const possibleEndpoints = [
+        '/api/tag-generator',
+        '/api/tag-generator-api',
+        'http://localhost:3000/api/tag-generator',
+        'http://localhost:8000/api/tag-generator'
+      ];
 
-      if (!response.ok) {
-        throw new Error('Failed to generate tag');
+      let response = null;
+      let lastError = null;
+
+      // Try each endpoint until one works
+      for (const endpoint of possibleEndpoints) {
+        try {
+          response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              field_label: fieldLabel,
+              form_id: formId,
+              field_id: currentFieldId
+            }),
+          });
+
+          if (response.ok) {
+            break; // Success, exit the loop
+          }
+        } catch (err) {
+          lastError = err;
+          continue; // Try the next endpoint
+        }
+      }
+
+      // If no endpoint worked, fall back to client-side generation
+      if (!response || !response.ok) {
+        console.warn('API endpoints not available, using client-side generation');
+        const result = await generateTagClientSide(fieldLabel, formId);
+        
+        setGeneratedTag(result.tag);
+        setTagQuality(result.quality);
+        setMessage(result.message);
+        setCustomTag(result.tag);
+        
+        // Add to saved tags if not already present
+        if (!savedTags.some(tag => tag.field_id === currentFieldId)) {
+          setSavedTags([...savedTags, {
+            field_id: currentFieldId,
+            field_label: fieldLabel,
+            tag: result.tag,
+            quality: result.quality
+          }]);
+        }
+        return;
       }
 
       const data = await response.json();
@@ -72,10 +111,80 @@ const TagGeneratorUI = () => {
         setError(data.error || 'An error occurred while generating the tag');
       }
     } catch (err) {
-      setError(err.message || 'An error occurred while generating the tag');
+      console.error('Tag generation error:', err);
+      setError('API not available. Please check your backend configuration.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Client-side tag generation fallback
+  const generateTagClientSide = async (fieldLabel, formId) => {
+    // Simple client-side tag generation as fallback
+    const normalizeText = (text) => {
+      return text.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    };
+
+    const stopWords = new Set(['a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'over', 'after']);
+
+    const domainWords = {
+      'soil': 10, 'crop': 10, 'yield': 10, 'moisture': 9, 'temperature': 9,
+      'ph': 9, 'nitrogen': 8, 'phosphorus': 8, 'potassium': 8, 'water': 8,
+      'pen': 8, 'field': 8, 'harvest': 8, 'plant': 8, 'seed': 8, 'growth': 8,
+      'chicken': 9, 'chick': 9, 'cow': 9, 'cattle': 9, 'pig': 9, 'sheep': 9,
+      'vaccination': 9, 'vaccine': 9, 'health': 8, 'disease': 8, 'treatment': 8
+    };
+
+    // Normalize and tokenize
+    const normalized = normalizeText(fieldLabel);
+    const tokens = normalized.split(' ').filter(token => 
+      !stopWords.has(token) && token.trim() && token.length > 1
+    );
+
+    // Handle vaccination special case
+    if (fieldLabel.toLowerCase().includes('vaccination') || fieldLabel.toLowerCase().includes('vaccine')) {
+      const animals = ['chick', 'chicken', 'cow', 'cattle', 'pig', 'sheep', 'goat'];
+      for (const animal of animals) {
+        if (tokens.includes(animal)) {
+          return {
+            tag: `${animal}_vaccination`,
+            quality: 'green',
+            message: 'Strong tag'
+          };
+        }
+      }
+      return {
+        tag: 'animal_vaccination',
+        quality: 'yellow',
+        message: 'Acceptable tag but could be improved'
+      };
+    }
+
+    // Score tokens
+    const scoredTokens = tokens.map(token => [token, domainWords[token] || 5])
+      .sort((a, b) => b[1] - a[1]);
+
+    // Select top tokens
+    const selectedTokens = scoredTokens.slice(0, 3).map(([token, _]) => token);
+    
+    const tag = selectedTokens.join('_') || 'generic_field';
+    
+    // Evaluate quality
+    const domainSpecific = selectedTokens.some(token => token in domainWords);
+    let quality, message;
+    
+    if (domainSpecific && selectedTokens.length >= 2) {
+      quality = 'green';
+      message = 'Strong tag';
+    } else if (domainSpecific || selectedTokens.length >= 2) {
+      quality = 'yellow';
+      message = 'Acceptable tag but could be improved';
+    } else {
+      quality = 'red';
+      message = 'Tag is too generic';
+    }
+
+    return { tag, quality, message };
   };
 
   // Handle saving a custom tag
@@ -155,7 +264,7 @@ const TagGeneratorUI = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Tag Generator</h1>
+      <h1 className="text-2xl font-bold mb-6">Agricultural Tag Generator</h1>
       
       {/* Error message */}
       {error && (
@@ -166,15 +275,15 @@ const TagGeneratorUI = () => {
       
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left side - Tag generation form */}
-        <div className="flex-1 bg-black p-6 rounded-lg shadow">
+        <div className="flex-1 bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Generate New Tag</h2>
           
           <div className="mb-4">
-            <label className="block text-white mb-2">Form ID</label>
+            <label className="block text-gray-700 mb-2">Form ID</label>
             <select 
               value={formId}
               onChange={(e) => setFormId(e.target.value)}
-              className="text-white border-white w-full px-3 py-2 border rounded-md"
+              className="w-full px-3 py-2 border rounded-md"
             >
               {forms.map(form => (
                 <option key={form} value={form}>{form}</option>
@@ -183,20 +292,20 @@ const TagGeneratorUI = () => {
           </div>
           
           <div className="mb-4">
-            <label className="block text-white mb-2">Field Label</label>
+            <label className="block text-gray-700 mb-2">Field Label</label>
             <input 
               type="text" 
               value={fieldLabel}
               onChange={(e) => setFieldLabel(e.target.value)}
-              placeholder="e.g., What is the Soil pH Level?, Chick Vaccination Date"
-              className="text-white border-white w-full px-3 py-2 border rounded-md"
+              placeholder="e.g., Soil pH Level, Chick Vaccination Date"
+              className="w-full px-3 py-2 border rounded-md"
             />
           </div>
           
           <button 
             onClick={handleGenerateTag}
             disabled={isLoading}
-            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md mr-2  disabled:bg-green-300"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md mr-2 hover:bg-blue-700 disabled:bg-blue-300"
           >
             {isLoading ? 'Generating...' : 'Generate Tag'}
           </button>
@@ -212,7 +321,7 @@ const TagGeneratorUI = () => {
             <div className="mt-6 p-4 border rounded-md">
               <h3 className="font-semibold mb-2">Generated Tag:</h3>
               <div className="flex items-center mb-4">
-                <code className="bg-white-100 px-3 py-1 rounded mr-2">{generatedTag}</code>
+                <code className="bg-gray-100 px-3 py-1 rounded mr-2">{generatedTag}</code>
                 <span className={`text-sm px-2 py-1 rounded border ${getQualityColorClass(tagQuality)}`}>
                   {message}
                 </span>
