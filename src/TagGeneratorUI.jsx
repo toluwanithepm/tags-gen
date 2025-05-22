@@ -183,11 +183,22 @@ const TagGeneratorUI = () => {
       "approximate", "estimated", "average"]);
 
     const domainWords = {
-      'soil': 10, 'crop': 10, 'yield': 10, 'moisture': 9, 'temperature': 9,
-      'ph': 9, 'nitrogen': 8, 'phosphorus': 8, 'potassium': 8, 'water': 8,
-      'pen': 8, 'field': 8, 'harvest': 8, 'plant': 8, 'seed': 8, 'growth': 8,
-      'chicken': 9, 'chick': 9, 'cow': 9, 'cattle': 9, 'pig': 9, 'sheep': 9,
-      'vaccination': 9, 'vaccine': 9, 'health': 8, 'disease': 8, 'treatment': 8
+                  // Agricultural terms
+                  "soil": 10, "crop": 10, "yield": 10, "moisture": 9, "temperature": 9,
+                  "ph": 9, "nitrogen": 8, "phosphorus": 8, "potassium": 8, "water": 8,
+                  "pen": 8, "field": 8, "harvest": 8, "plant": 8, "seed": 8, "growth": 8,
+                  "irrigation": 7, "fertilizer": 7, "pesticide": 7, "rainfall": 7,
+                  
+                  // Livestock and poultry terms
+                  "chicken": 9, "chick": 9, "hen": 9, "rooster": 9, "egg": 9, 
+                  "cattle": 9, "cow": 9, "bull": 9, "calf": 9, "pig": 9, "sheep": 9,
+                  "goat": 9, "lamb": 9, "duck": 9, "horse": 9, "feed": 8, "weight": 8,
+                  "vaccination": 9, "vaccine": 9, "health": 8, "disease": 8, "treatment": 8,
+                  "medication": 8, "antibiotic": 8, "supplement": 7, "vitamin": 7,
+                  
+                  // Agricultural operations
+                  "planting": 8, "seeding": 8, "fertilizing": 8, "spraying": 8, "watering": 8,
+                  "harvesting": 8, "breeding": 8, "feeding": 8, "milking": 8, "shearing": 8
     };
 
     // Normalize and tokenize
