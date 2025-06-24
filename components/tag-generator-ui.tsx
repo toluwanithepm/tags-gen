@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { TagGenerator, type TagResult } from "../lib/tag-generator"
-import { Loader2, CheckCircle, AlertCircle, XCircle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { TagGenerator, type TagResult } from "../lib/tag-generator" // Adjusted path to relative
+import { Loader2, CheckCircle, AlertCircle, XCircle, Database, AlertTriangle } from "lucide-react"
 import React from "react"
 
 interface GeneratedTag {
@@ -26,6 +27,32 @@ export default function TagGeneratorUI() {
   const [currentResult, setCurrentResult] = useState<TagResult | null>(null)
   const [showSteps, setShowSteps] = useState(false)
   const [tagGenerator] = useState(() => new TagGenerator())
+  const [databaseStatus, setDatabaseStatus] = useState<"checking" | "connected" | "fallback">("checking")
+
+  // Check database status on mount
+  useEffect(() => {
+    const checkDatabaseStatus = async () => {
+      try {
+        // Try to initialize the tag generator
+        await tagGenerator.initialize()
+
+        // Check if we have environment variables
+        const hasSupabaseUrl = !!(process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL)
+        const hasSupabaseKey = !!(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY)
+
+        if (hasSupabaseUrl && hasSupabaseKey) {
+          setDatabaseStatus("connected")
+        } else {
+          setDatabaseStatus("fallback")
+        }
+      } catch (error) {
+        console.warn("Database check failed:", error)
+        setDatabaseStatus("fallback")
+      }
+    }
+
+    checkDatabaseStatus()
+  }, [tagGenerator])
 
   // Generate field ID
   const generateFieldId = () => `field_${Date.now()}_${Math.floor(Math.random() * 1000)}`
@@ -41,7 +68,7 @@ export default function TagGeneratorUI() {
       const result = await tagGenerator.generateTag(fieldLabel)
       setCurrentResult(result)
 
-      // Save to database
+      // Save to database (will be skipped if database not available)
       const fieldId = generateFieldId()
       await tagGenerator.saveTag(fieldId, fieldLabel, result.tag)
 
@@ -104,6 +131,26 @@ export default function TagGeneratorUI() {
           Auto-generates meaningful tags for agricultural form fields using advanced NLP techniques
         </p>
       </div>
+
+      {/* Database Status Alert */}
+      {databaseStatus === "fallback" && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Database not configured. Using fallback mode with built-in stop words and domain knowledge. To enable full
+            database features, configure Supabase environment variables.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {databaseStatus === "connected" && (
+        <Alert className="border-green-200 bg-green-50">
+          <Database className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-800">
+            Database connected. Using comprehensive stop words and domain knowledge from Supabase.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input Section */}
@@ -228,7 +275,8 @@ export default function TagGeneratorUI() {
                   <strong>2. Tokenization:</strong> Split into individual words
                 </li>
                 <li>
-                  <strong>3. Stop Word Removal:</strong> Filter out common words from database
+                  <strong>3. Stop Word Removal:</strong> Filter out common words{" "}
+                  {databaseStatus === "connected" ? "from database" : "(built-in list)"}
                 </li>
                 <li>
                   <strong>4. Lemmatization:</strong> Convert to standardized word forms
@@ -243,7 +291,8 @@ export default function TagGeneratorUI() {
                   <strong>7. Formatting:</strong> Apply snake_case formatting
                 </li>
                 <li>
-                  <strong>8. Uniqueness Check:</strong> Ensure tag uniqueness in database
+                  <strong>8. Uniqueness Check:</strong> Ensure tag uniqueness{" "}
+                  {databaseStatus === "connected" ? "in database" : "(timestamp-based)"}
                 </li>
               </ol>
             </div>
