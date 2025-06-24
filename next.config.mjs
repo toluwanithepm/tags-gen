@@ -1,24 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // Remove output: 'standalone' as it's not needed for Vercel
   experimental: {
-    outputFileTracingRoot: undefined,
+    serverComponentsExternalPackages: ['@supabase/supabase-js'],
   },
-  // Ensure proper build output
-  distDir: '.next',
-  // Enable static optimization
-  trailingSlash: false,
   // Configure for deployment
   poweredByHeader: false,
   compress: true,
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   images: {
-    unoptimized: true,
+    domains: [],
+    unoptimized: false,
   },
 }
 
