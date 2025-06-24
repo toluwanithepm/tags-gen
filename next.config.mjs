@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Ensure proper build output
   distDir: '.next',
+  // Ensure CSS is properly processed
+  experimental: {
+    serverComponentsExternalPackages: ['@supabase/supabase-js'],
+  },
   // Configure for deployment
   poweredByHeader: false,
   compress: true,
@@ -13,9 +16,6 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
-  },
-  experimental: {
-    serverComponentsExternalPackages: ['@supabase/supabase-js'],
   },
 }
 
