@@ -122,7 +122,7 @@ export default function TagGeneratorUI() {
     <div className="max-w-6xl mx-auto p-6 space-y-6" style={{ maxWidth: "72rem", margin: "0 auto", padding: "1.5rem" }}>
       <div className="text-center">
         <h1 className="text-3xl font-bold tracking-tight" style={{ fontSize: "1.875rem", fontWeight: "bold" }}>
-          Agricultural Tag Generator
+          Tag Generator
         </h1>
         <p className="text-muted-foreground mt-2" style={{ color: "#6b7280", marginTop: "0.5rem" }}>
           Auto-generates meaningful tags for agricultural form fields using advanced NLP techniques
@@ -135,14 +135,14 @@ export default function TagGeneratorUI() {
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <AlertTriangle className="h-4 w-4" />
             <div>
-              Database not configured. Using fallback mode with built-in stop words and domain knowledge.{" "}
-              <button
+              Database not configured. Using fallback mode with built-in stop words and domain knowledge.
+              {/* <button
                 onClick={() => setShowSetup(!showSetup)}
                 className="text-blue-600 hover:text-blue-800 underline"
                 style={{ color: "#2563eb", textDecoration: "underline" }}
               >
                 {showSetup ? "Hide" : "Show"} setup guide
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
@@ -155,7 +155,7 @@ export default function TagGeneratorUI() {
         >
           <Database className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800" style={{ color: "#166534" }}>
-            Database connected. Using comprehensive stop words and domain knowledge from Supabase.
+            Database connected. Using comprehensive stop words and domain knowledge from your Supabase DB.
           </AlertDescription>
         </Alert>
       )}
