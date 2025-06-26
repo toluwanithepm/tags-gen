@@ -1,9 +1,11 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from 'next/font/google'; // Add this import statement
-const inter = Inter({ subsets: ['latin'] })
+import { Inter } from "next/font/google"
 import "./globals.css"
-import { Analytics } from '@vercel/analytics/next';
+import { Analytics } from "@vercel/analytics/next"
+import { Suspense } from "react"
+
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Tag Generator",
@@ -17,13 +19,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <title>Next.js</title>
-      </head>
       <body className={inter.className}>
-        {children}
+        <Suspense fallback={<div>Loading...</div>}>
+          <div className="min-h-screen bg-background text-foreground">{children}</div>
+        </Suspense>
         <Analytics />
-        <div className="min-h-screen bg-background text-foreground">{children}</div>
       </body>
     </html>
   )
