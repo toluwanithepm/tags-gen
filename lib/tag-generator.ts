@@ -503,40 +503,95 @@ export class TagGenerator {
     return scoredTokens.sort((a, b) => b[1] - a[1])
   }
 
-  // Step 6: Word Selection and Ordering
+  // Step 6: Enhanced Word Selection and Ordering with Character Limit Check
   private selectAndOrderWords(scoredTokens: Array<[string, number]>, originalTokens: string[], maxWords = 3): string[] {
     // Special case handling for vaccination
     if (originalTokens.includes("vaccination") || originalTokens.includes("vaccine")) {
       const animals = ["chick", "chicken", "cow", "cattle", "pig", "sheep", "goat", "lamb", "horse", "duck"]
       for (const animal of animals) {
         if (originalTokens.includes(animal)) {
-          return [animal, "vaccination"]
+          return this.selectWordsByCharacterLimit([animal, "vaccination"], scoredTokens)
         }
       }
-      return ["animal", "vaccination"]
+      return this.selectWordsByCharacterLimit(["animal", "vaccination"], scoredTokens)
     }
 
-    // Special patterns for personal information
+    // Enhanced special patterns for personal information
     if (originalTokens.includes("mother") && originalTokens.includes("maiden")) {
-      return ["mother", "maiden"]
+      const baseWords = ["mother", "maiden"]
+      // Check if we can add "name" within character limit
+      if (originalTokens.includes("name")) {
+        return this.selectWordsByCharacterLimit([...baseWords, "name"], scoredTokens)
+      }
+      return this.selectWordsByCharacterLimit(baseWords, scoredTokens)
     }
+
     if (originalTokens.includes("father") && originalTokens.includes("name")) {
-      return ["father", "name"]
+      const baseWords = ["father", "name"]
+      // Check for additional relevant words
+      const additionalWords = originalTokens.filter(
+        (token) => !baseWords.includes(token) && this.domainWords.has(token),
+      )
+      if (additionalWords.length > 0) {
+        return this.selectWordsByCharacterLimit([...baseWords, additionalWords[0]], scoredTokens)
+      }
+      return this.selectWordsByCharacterLimit(baseWords, scoredTokens)
     }
 
     // Special patterns for agricultural terms
     if (originalTokens.includes("breadth") && originalTokens.includes("pen")) {
-      return ["pen", "breadth"]
+      return this.selectWordsByCharacterLimit(["pen", "breadth"], scoredTokens)
     }
     if (originalTokens.includes("ph") && originalTokens.includes("soil")) {
-      return ["soil", "ph"]
+      return this.selectWordsByCharacterLimit(["soil", "ph"], scoredTokens)
     }
     if (originalTokens.includes("yield") && originalTokens.includes("acre")) {
-      return ["yield", "acre"]
+      return this.selectWordsByCharacterLimit(["yield", "acre"], scoredTokens)
     }
 
-    // Default selection - top scored words
-    return scoredTokens.slice(0, maxWords).map(([token, _]) => token)
+    // Default selection - select words based on character limit
+    return this.selectWordsByCharacterLimit(
+      scoredTokens.slice(0, maxWords).map(([token, _]) => token),
+      scoredTokens,
+    )
+  }
+
+  // New helper method to select words based on 25-character limit
+  private selectWordsByCharacterLimit(candidateWords: string[], scoredTokens: Array<[string, number]>): string[] {
+    const maxLength = 25
+    const selectedWords: string[] = []
+
+    // Sort candidate words by their scores (highest first)
+    const sortedCandidates = candidateWords
+      .map((word) => ({
+        word,
+        score: scoredTokens.find(([token, _]) => token === word)?.[1] || 0,
+      }))
+      .sort((a, b) => b.score - a.score)
+
+    for (const { word } of sortedCandidates) {
+      // Calculate what the tag length would be if we add this word
+      const testWords = [...selectedWords, word]
+      const testTag = testWords.join("_")
+
+      // If adding this word keeps us under the limit, add it
+      if (testTag.length <= maxLength) {
+        selectedWords.push(word)
+      }
+    }
+
+    // Ensure we have at least one word
+    if (selectedWords.length === 0 && candidateWords.length > 0) {
+      selectedWords.push(sortedCandidates[0].word)
+    }
+
+    return selectedWords
+  }
+
+  // Helper method to estimate final tag length
+  private estimateTagLength(words: string[]): number {
+    if (words.length === 0) return 0
+    return words.join("_").length
   }
 
   // Step 7: Formatting (snake_case)
